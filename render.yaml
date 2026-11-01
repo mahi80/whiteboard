@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: whiteboard
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      # Paste a free Postgres URL (Neon / Supabase). Without it, boards are kept
+      # in SQLite on the container disk and are lost whenever the free service restarts.
+      - key: DATABASE_URL
+        sync: false

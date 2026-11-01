@@ -1,0 +1,8 @@
+services:
+  whiteboard:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data   # boards persist here
+    restart: unless-stopped

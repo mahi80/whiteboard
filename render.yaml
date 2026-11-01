@@ -8,5 +8,7 @@ services:
     envVars:
       # Paste a free Postgres URL (Neon / Supabase). Without it, boards are kept
       # in SQLite on the container disk and are lost whenever the free service restarts.
-      - key: DATABASE_URL
+      - key: DATABASE_URL            # Neon pooled string (-pooler host)
+        sync: false
+      - key: DATABASE_URL_UNPOOLED   # Neon direct string (optional, used for CREATE TABLE)
         sync: false

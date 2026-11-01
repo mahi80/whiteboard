@@ -6,6 +6,9 @@ import threading
 import time
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+# Neon: DATABASE_URL is the pooled (-pooler, PgBouncer) string; the unpooled one is
+# used only for the one-time CREATE TABLE, per Neon's guidance on DDL.
+DATABASE_URL_UNPOOLED = os.getenv("DATABASE_URL_UNPOOLED", "").strip() or DATABASE_URL
 
 
 class Storage:
@@ -15,11 +18,12 @@ class Storage:
         if self.pg:
             import psycopg
 
-            self.conn = psycopg.connect(DATABASE_URL, autocommit=True)
-            self._exec(
-                "CREATE TABLE IF NOT EXISTS boards ("
-                "id TEXT PRIMARY KEY, data TEXT NOT NULL, updated_at DOUBLE PRECISION NOT NULL)"
-            )
+            with psycopg.connect(DATABASE_URL_UNPOOLED, autocommit=True) as ddl:
+                ddl.execute(
+                    "CREATE TABLE IF NOT EXISTS boards ("
+                    "id TEXT PRIMARY KEY, data TEXT NOT NULL, updated_at DOUBLE PRECISION NOT NULL)"
+                )
+            self.conn = self._connect_pg()
         else:
             path = os.getenv("SQLITE_PATH", os.path.join(os.path.dirname(__file__), "..", "data", "boards.db"))
             os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
@@ -44,14 +48,20 @@ class Storage:
                 self.conn.commit()
             return rows
 
-    def _reconnect_pg(self):
+    @staticmethod
+    def _connect_pg():
         import psycopg
 
+        # prepare_threshold=None: PgBouncer transaction mode (Neon pooler) can't keep
+        # server-side prepared statements across transactions.
+        return psycopg.connect(DATABASE_URL, autocommit=True, prepare_threshold=None)
+
+    def _reconnect_pg(self):
         try:
             self.conn.close()
         except Exception:
             pass
-        self.conn = psycopg.connect(DATABASE_URL, autocommit=True)
+        self.conn = self._connect_pg()  # Neon scales to zero and drops idle connections
 
     def _safe(self, fn, *a):
         try:

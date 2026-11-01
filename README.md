@@ -10,10 +10,12 @@ A free, self-hostable collaborative whiteboard. It uses Excalidraw for the canva
 
 ## Deploy free on Render
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/mahi80/whiteboard)
+1. Sign in to Render with GitHub, then go to **New → Blueprint** and pick `mahi80/whiteboard`. Render reads `render.yaml`. No card is needed.
+2. Paste the Neon connection strings (Neon console → project `fragrant-morning-93689045` → branch `production` → Connect):
+   - `DATABASE_URL`: the **pooled** string (host contains `-pooler`)
+   - `DATABASE_URL_UNPOOLED`: the direct string (optional)
 
-1. Click the button and sign in to Render with GitHub. No card is needed.
-2. When it asks for `DATABASE_URL`, paste a free Postgres URL from [Neon](https://neon.tech) or Supabase. Free Render containers lose their disk on every restart, so without a database your boards disappear.
+   Free Render containers lose their disk on every restart, so without a database your boards disappear.
 3. Wait about 5 minutes for the first build, then open `https://whiteboard-xxxx.onrender.com`.
 
 On the free tier the service sleeps after 15 minutes idle. The first visit after that takes about a minute to wake it up.

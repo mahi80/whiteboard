@@ -8,17 +8,29 @@ A free, self-hostable collaborative whiteboard. It uses Excalidraw for the canva
 - Images pasted onto the board sync too (up to 4 MB each).
 - Export a board: `GET /api/board/<id>` downloads an `.excalidraw` file.
 
+## Live
+
+**https://whiteboard-m7n7.onrender.com** (Render free tier)
+
+Open it, tap **+ New board**, then **Share** to send the link. Nobody needs to log in.
+
+### Using it for interviews
+- **Open the link 1–2 minutes before the call.** The free server sleeps after 15 minutes idle, and the first visit takes about 50 seconds to wake it.
+- While people are drawing, the server stays awake and everything syncs live.
+- **Boards are temporary.** No database is configured, so a board is wiped about 15 minutes after everyone leaves, or on any redeploy. To keep a drawing, use **☰ menu → Save to… / Export image** before closing.
+
 ## Deploy free on Render
 
-1. Sign in to Render with GitHub, then go to **New → Blueprint** and pick `mahi80/whiteboard`. Render reads `render.yaml`. No card is needed.
-2. Paste the Neon connection strings (Neon console → project `fragrant-morning-93689045` → branch `production` → Connect):
-   - `DATABASE_URL`: the **pooled** string (host contains `-pooler`)
-   - `DATABASE_URL_UNPOOLED`: the direct string (optional)
+1. Sign in to Render, go to **New → Blueprint**, and enter `https://github.com/mahi80/whiteboard`. Render reads `render.yaml`. No card is needed.
+2. Click **Deploy Blueprint**. The first build takes a few minutes. Every push to `main` redeploys automatically.
 
-   Free Render containers lose their disk on every restart, so without a database your boards disappear.
-3. Wait about 5 minutes for the first build, then open `https://whiteboard-xxxx.onrender.com`.
+### Optional: keep boards permanently (Neon Postgres)
+By default the app uses SQLite on the container disk, and free Render containers lose that disk on every restart. To make boards permanent:
+1. Neon console → project `fragrant-morning-93689045` → branch `production` → **Connect**. Copy the **pooled** string (its host contains `-pooler`).
+2. Render → whiteboard service → **Environment** → add `DATABASE_URL` = that string (optionally `DATABASE_URL_UNPOOLED` = the direct string) → **Save and deploy**.
+3. Check `/healthz`. It should show `"storage":"postgres"`.
 
-On the free tier the service sleeps after 15 minutes idle. The first visit after that takes about a minute to wake it up.
+No code changes are needed.
 
 ## Run locally
 
